@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Bar Chart: Lifestyle Factors</title>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+    <style>
+        .bar.male.InactiveNoAlcoholNoSmoking { fill: #4682b4; }
+        .bar.male.InactiveNoAlcoholSmoking { fill: #5f9ea0; }
+        .bar.male.InactiveAlcoholNoSmoking { fill: #6495ed; }
+        .bar.male.InactiveAlcoholSmoking { fill: #7b68ee; }
+        .bar.male.ActiveNoAlcoholNoSmoking { fill: #4169e1; }
+        .bar.male.ActiveAlcoholNoSmoking { fill: #0000ff; }
+        .bar.male.ActiveNoAlcoholSmoking { fill: #1e90ff; }
+        .bar.male.ActiveAlcoholSmoking { fill: #00bfff; }
+
+        .bar.female.InactiveNoAlcoholNoSmoking { fill: #ff69b4; }
+        .bar.female.InactiveNoAlcoholSmoking { fill: #ff1493; }
+        .bar.female.InactiveAlcoholNoSmoking { fill: #ffb6c1; }
+        .bar.female.InactiveAlcoholSmoking { fill: #ff00ff; }
+        .bar.female.ActiveNoAlcoholNoSmoking { fill: #ff1493; }
+        .bar.female.ActiveAlcoholNoSmoking { fill: #db7093; }
+        .bar.female.ActiveNoAlcoholSmoking { fill: #c71585; }
+        .bar.female.ActiveAlcoholSmoking { fill: #ffa07a; }
+
+        .axis-label {
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .tooltip {
+            position: absolute;
+            text-align: center;
+            width: auto;
+            max-width: 150px;
+            padding: 5px;
+            font: 12px sans-serif;
+            background: lightsteelblue;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .legend rect {
+            width: 20px;
+            height: 20px;
+        }
+
+        .legend text {
+            font-size: 12px;
+            vertical-align: middle;
+        }
+
+        .annotation {
+            font-size: 12px;
+            fill: red;
+            text-anchor: middle;
+        }
+    </style>
+</head>
+<body>
+    <h1>Cardiovascular Disease: Affected Gender vs. Age, Physical Activity, Alcohol Intake & Smoking Habits</h1>
+    <p>For individuals with heart disease, the data indicates that maintaining an active lifestyle with minimal alcohol consumption and 
+    smoking is common across all age groups and genders. The majority of people, especially in the 50-59 age group, are active and abstain 
+    from alcohol and smoking, which is beneficial for heart health. Females generally outnumber males in both inactive and active categories, 
+    with a significant emphasis on being active. Despite the overall trend towards healthy habits, a small proportion of individuals, particularly 
+    middle-aged active males, do engage in smoking and alcohol consumption. Prioritizing an active lifestyle while avoiding smoking and excessive alcohol 
+    can significantly benefit heart health.</p>
+    <div id="buttons">
+        <button id="maleButton">Male</button>
+        <button id="femaleButton">Female</button>
+    </div>
+    <div id="chart"></div>
+    <div class="button-group">
+        <button onclick="window.location.href='index.html'">Previous</button>
+        <button onclick="window.location.href='firstannotations3UA.html'">Next</button>
+    </div>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script>
+        const data = [
+            { age: "30-39", maleInactiveNoAlcoholNoSmoking: 6, maleInactiveNoAlcoholSmoking: 1, maleInactiveAlcoholNoSmoking: 0, maleInactiveAlcoholSmoking: 0, maleActiveNoAlcoholNoSmoking: 24, maleActiveAlcoholNoSmoking: 3, maleActiveNoAlcoholSmoking: 2, maleActiveAlcoholSmoking: 2, femaleInactiveNoAlcoholNoSmoking: 19, femaleInactiveNoAlcoholSmoking: 0, femaleInactiveAlcoholNoSmoking: 0, femaleInactiveAlcoholSmoking: 0, femaleActiveNoAlcoholNoSmoking: 34, femaleActiveAlcoholNoSmoking: 1, femaleActiveNoAlcoholSmoking: 0, femaleActiveAlcoholSmoking: 0 },
+            { age: "40-49", maleInactiveNoAlcoholNoSmoking: 408, maleInactiveNoAlcoholSmoking: 82, maleInactiveAlcoholNoSmoking: 11, maleInactiveAlcoholSmoking: 42, maleActiveNoAlcoholNoSmoking: 1357, maleActiveAlcoholNoSmoking: 84, maleActiveNoAlcoholSmoking: 330, maleActiveAlcoholSmoking: 142, femaleInactiveNoAlcoholNoSmoking: 683, femaleInactiveNoAlcoholSmoking: 14, femaleInactiveAlcoholNoSmoking: 9, femaleInactiveAlcoholSmoking: 3, femaleActiveNoAlcoholNoSmoking: 2711, femaleActiveAlcoholNoSmoking: 73, femaleActiveNoAlcoholSmoking: 52, femaleActiveAlcoholSmoking: 12 },
+            { age: "50-59", maleInactiveNoAlcoholNoSmoking: 901, maleInactiveNoAlcoholSmoking: 129, maleInactiveAlcoholNoSmoking: 34, maleInactiveAlcoholSmoking: 52, maleActiveNoAlcoholNoSmoking: 3226, maleActiveAlcoholNoSmoking: 183, maleActiveNoAlcoholSmoking: 668, maleActiveAlcoholSmoking: 282, femaleInactiveNoAlcoholNoSmoking: 2211, femaleInactiveNoAlcoholSmoking: 29, femaleInactiveAlcoholNoSmoking: 39, femaleInactiveAlcoholSmoking: 8, femaleActiveNoAlcoholNoSmoking: 8022, femaleActiveAlcoholNoSmoking: 233, femaleActiveNoAlcoholSmoking: 127, femaleActiveAlcoholSmoking: 25 },
+            { age: "60-65", maleInactiveNoAlcoholNoSmoking: 528, maleInactiveNoAlcoholSmoking: 76, maleInactiveAlcoholNoSmoking: 21, maleInactiveAlcoholSmoking: 32, maleActiveNoAlcoholNoSmoking: 1867, maleActiveAlcoholNoSmoking: 83, maleActiveNoAlcoholSmoking: 302, maleActiveAlcoholSmoking: 125, femaleInactiveNoAlcoholNoSmoking: 1174, femaleInactiveNoAlcoholSmoking: 25, femaleInactiveAlcoholNoSmoking: 21, femaleInactiveAlcoholSmoking: 4, femaleActiveNoAlcoholNoSmoking: 4368, femaleActiveAlcoholNoSmoking: 84, femaleActiveNoAlcoholSmoking: 39, femaleActiveAlcoholSmoking: 6 }
+        ];
+
+        const margin = { top: 20, right: 60, bottom: 100, left: 90 }; // Increased bottom margin
+        const width = 800 - margin.left - margin.right;
+        const height = 500 - margin.top - margin.bottom;
+
+        const svg = d3.select("#chart")
+            .append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", `translate(${margin.left},${margin.top})`);
+
+        const x0 = d3.scaleBand()
+            .domain(data.map(d => d.age))
+            .rangeRound([0, width])
+            .paddingInner(0.1);
+
+        const x1 = d3.scaleBand()
+            .domain([
+                'InactiveNoAlcoholNoSmoking', 'InactiveNoAlcoholSmoking', 'InactiveAlcoholNoSmoking', 'InactiveAlcoholSmoking',
+                'ActiveNoAlcoholNoSmoking', 'ActiveAlcoholNoSmoking', 'ActiveNoAlcoholSmoking', 'ActiveAlcoholSmoking'
+            ])
+            .rangeRound([0, x0.bandwidth()])
+            .padding(0.05);
+
+        const y = d3.scaleLinear()
+            .rangeRound([height, 0]);
+
+        const xAxis = d3.axisBottom(x0);
+        const yAxis = d3.axisLeft(y).ticks(null, "s");
+
+        const tooltip = d3.select("body").append("div")
+            .attr("class", "tooltip")
+            .style("opacity", 0);
+
+        const legendData = [
+            { key: 'InactiveNoAlcoholNoSmoking', label: 'Inactive No Alcohol No Smoking' },
+            { key: 'InactiveNoAlcoholSmoking', label: 'Inactive No Alcohol Smoking' },
+            { key: 'InactiveAlcoholNoSmoking', label: 'Inactive Alcohol No Smoking' },
+            { key: 'InactiveAlcoholSmoking', label: 'Inactive Alcohol Smoking' },
+            { key: 'ActiveNoAlcoholNoSmoking', label: 'Active No Alcohol No Smoking' },
+            { key: 'ActiveAlcoholNoSmoking', label: 'Active Alcohol No Smoking' },
+            { key: 'ActiveNoAlcoholSmoking', label: 'Active No Alcohol Smoking' },
+            { key: 'ActiveAlcoholSmoking', label: 'Active Alcohol Smoking' }
+        ];
+
+        function createLegend(svg, gender) {
+            svg.selectAll(".legend").remove();
+
+            const legend = svg.append("g")
+                .attr("class", "legend")
+                .attr("transform", `translate(${width - 600}, 10)`);
+
+            legend.selectAll("rect")
+                .data(legendData)
+                .enter().append("rect")
+                .attr("x", 0)
+                .attr("y", (d, i) => i * 25)
+                .attr("width", 20)
+                .attr("height", 20)
+                .attr("class", d => `bar ${gender} ${d.key}`);
+
+            legend.selectAll("text")
+                .data(legendData)
+                .enter().append("text")
+                .attr("x", 30)
+                .attr("y", (d, i) => i * 25 + 15)
+                .text(d => d.label);
+        }
+
+        function update(gender) {
+            const maxVal = d3.max(data, d => Math.max(
+                d[`${gender}InactiveNoAlcoholNoSmoking`], d[`${gender}InactiveNoAlcoholSmoking`], d[`${gender}InactiveAlcoholNoSmoking`], d[`${gender}InactiveAlcoholSmoking`],
+                d[`${gender}ActiveNoAlcoholNoSmoking`], d[`${gender}ActiveAlcoholNoSmoking`], d[`${gender}ActiveNoAlcoholSmoking`], d[`${gender}ActiveAlcoholSmoking`]
+            ));
+
+            const minVal = d3.min(data, d => Math.min(
+                d[`${gender}InactiveNoAlcoholNoSmoking`], d[`${gender}InactiveNoAlcoholSmoking`], d[`${gender}InactiveAlcoholNoSmoking`], d[`${gender}InactiveAlcoholSmoking`],
+                d[`${gender}ActiveNoAlcoholNoSmoking`], d[`${gender}ActiveAlcoholNoSmoking`], d[`${gender}ActiveNoAlcoholSmoking`], d[`${gender}ActiveAlcoholSmoking`]
+            ));
+
+            y.domain([0, maxVal]);
+
+            svg.selectAll(".axis").remove();
+            svg.append("g")
+                .attr("class", "axis axis--x")
+                .attr("transform", `translate(0,${height + 20})`) // Move the x-axis down
+                .call(xAxis)
+                .append("text")
+                .attr("x", width / 2)
+                .attr("y", 50) // Adjusted position for x-axis label
+                .attr("fill", "#000")
+                .attr("text-anchor", "middle")
+                .attr("class", "axis-label")
+                .text("Age Group");
+
+            svg.append("g")
+                .attr("class", "axis axis--y")
+                .call(yAxis)
+                .append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("y", -margin.left + 20)
+                .attr("x", -height / 2)
+                .attr("dy", "-3.5em")
+                .attr("fill", "#000")
+                .attr("text-anchor", "middle")
+                .attr("class", "axis-label")
+                .text("Population");
+
+            const bars = svg.selectAll(".barGroup")
+                .data(data);
+
+            bars.exit().remove();
+
+            const barsEnter = bars.enter().append("g")
+                .attr("class", "barGroup")
+                .attr("transform", d => `translate(${x0(d.age)},0)`);
+
+            barsEnter.merge(bars).selectAll("rect")
+                .data(d => [
+                    { key: 'InactiveNoAlcoholNoSmoking', value: d[`${gender}InactiveNoAlcoholNoSmoking`] },
+                    { key: 'InactiveNoAlcoholSmoking', value: d[`${gender}InactiveNoAlcoholSmoking`] },
+                    { key: 'InactiveAlcoholNoSmoking', value: d[`${gender}InactiveAlcoholNoSmoking`] },
+                    { key: 'InactiveAlcoholSmoking', value: d[`${gender}InactiveAlcoholSmoking`] },
+                    { key: 'ActiveNoAlcoholNoSmoking', value: d[`${gender}ActiveNoAlcoholNoSmoking`] },
+                    { key: 'ActiveAlcoholNoSmoking', value: d[`${gender}ActiveAlcoholNoSmoking`] },
+                    { key: 'ActiveNoAlcoholSmoking', value: d[`${gender}ActiveNoAlcoholSmoking`] },
+                    { key: 'ActiveAlcoholSmoking', value: d[`${gender}ActiveAlcoholSmoking`] }
+                ])
+                .join("rect")
+                .attr("x", d => x1(d.key))
+                .attr("y", d => y(d.value))
+                .attr("width", x1.bandwidth())
+                .attr("height", d => height - y(d.value))
+                .attr("class", d => `bar ${gender} ${d.key}`)
+                .on("mouseover", function (event, d) {
+                    tooltip.transition()
+                        .duration(200)
+                        .style("opacity", .9);
+                    tooltip.html(`Population: ${d.value}`)
+                        .style("left", (event.pageX + 5) + "px")
+                        .style("top", (event.pageY - 28) + "px");
+                })
+                .on("mouseout", function () {
+                    tooltip.transition()
+                        .duration(500)
+                        .style("opacity", 0);
+                });
+
+            // Remove previous annotations
+            svg.selectAll(".annotation").remove();
+
+            // Add annotations for max and min values
+            data.forEach(d => {
+                const values = [
+                    d[`${gender}InactiveNoAlcoholNoSmoking`], d[`${gender}InactiveNoAlcoholSmoking`], d[`${gender}InactiveAlcoholNoSmoking`], d[`${gender}InactiveAlcoholSmoking`],
+                    d[`${gender}ActiveNoAlcoholNoSmoking`], d[`${gender}ActiveAlcoholNoSmoking`], d[`${gender}ActiveNoAlcoholSmoking`], d[`${gender}ActiveAlcoholSmoking`]
+                ];
+
+                const maxVal = d3.max(values);
+                const minVal = d3.min(values);
+
+                const maxKey = Object.keys(d).find(key => d[key] === maxVal && key.startsWith(gender));
+                const minKey = Object.keys(d).find(key => d[key] === minVal && key.startsWith(gender));
+
+                if (maxVal !== 0) {
+                    svg.append("text")
+                        .attr("class", "annotation")
+                        .attr("x", x0(d.age) + x1(maxKey.split(gender)[1]) + x1.bandwidth() / 2)
+                        .attr("y", y(maxVal) - 5)
+                        .text(`Max: ${maxVal}`);
+                }
+
+                if (minVal !== 0) {
+                    svg.append("text")
+                        .attr("class", "annotation")
+                        .attr("x", x0(d.age) + x1(minKey.split(gender)[1]) + x1.bandwidth() / 2)
+                        .attr("y", y(minVal) + 15)
+                        .text(`Min: ${minVal}`);
+                }
+            });
+
+            createLegend(svg, gender);
+        }
+
+        d3.select("#maleButton").on("click", () => update('male'));
+        d3.select("#femaleButton").on("click", () => update('female'));
+
+        // Initialize with male data
+        update('male');
+    </script>
+</body>
+</html>

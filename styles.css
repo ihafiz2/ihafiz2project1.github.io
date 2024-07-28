@@ -1,0 +1,57 @@
+/* Ensure buttons are displayed inline */
+#maleButton, #femaleButton {
+    display: inline-block;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    max-width: 1200px;
+    margin: auto;
+    padding: 10px;
+    font-family: Arial, sans-serif;
+    background-color: #f0f8ff; /* Add background color */
+}
+
+h1 {
+    color: #333;
+    font-size: xx-large;
+}
+
+p {
+    margin-top: 0.0em;
+    margin-bottom: 0.3em;
+}
+
+/* Center button group and ensure it sticks to the bottom */
+.button-group {
+    display: flex;
+    justify-content: center;
+    margin-top: auto;
+    width: 100%;
+    padding: 10px 0;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    background-color: #f0f8ff; /* Match background color if needed */
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1); /* Optional shadow for separation */
+}
+
+/* Ensure buttons have consistent appearance */
+button {
+    padding: 5px 10px; /* Reduced padding */
+    margin: 5px;
+    font-size: 14px; /* Reduced font size */
+    color: white;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #0056b3;
+}

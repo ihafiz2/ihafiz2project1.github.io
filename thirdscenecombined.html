@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Interactive Bar Chart: Biochemical Markers</title>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        .bar.affected.male {
+            fill: steelblue;
+        }
+        .bar.unaffected.male {
+            fill: lightblue;
+        }
+        .bar.affected.female {
+            fill: red;
+        }
+        .bar.unaffected.female {
+            fill: pink;
+        }
+        .bar:hover {
+            fill: orange;
+        }
+        .tooltip {
+            position: absolute;
+            text-align: center;
+            width: auto;
+            max-width: 150px; /* Adjust if needed */
+            padding: 5px;
+            font: 12px sans-serif;
+            background: lightsteelblue;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .button-group {
+            margin-top: 20px;
+        }
+        .annotation {
+            font: 12px sans-serif;
+            fill: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>Cardiovascular Disease: Glucose & Cholesterol Levels</h1>
+    <p>The data shows that many heart disease cases occur in individuals with normal glucose and cholesterol levels, with females having 
+    higher incidences across all categories compared to males. Elevated glucose and cholesterol levels are associated with a higher risk 
+    of heart disease, with the risk increasing as levels become more abnormal. Combined abnormal levels also result in significant heart 
+    disease cases, particularly among females. This suggests that heart disease can occur even without elevated glucose or cholesterol, 
+    but these factors still significantly increase the risk. On the other hand, the highest number of people unaffected by heart disease 
+    have normal glucose and cholesterol levels, with females consistently having higher numbers across all categories compared to males. 
+    Elevated glucose and cholesterol levels are associated with fewer unaffected individuals, indicating a higher risk of heart disease 
+    as these levels become more abnormal. This suggests that maintaining normal glucose and cholesterol levels is associated with a lower 
+    risk of heart disease.</p>
+    <div id="buttons">
+        <button id="affectedMaleButton">Affected Male</button>
+        <button id="unaffectedMaleButton">Unaffected Male</button>
+        <button id="affectedFemaleButton">Affected Female</button>
+        <button id="unaffectedFemaleButton">Unaffected Female</button>
+    </div>
+    <div class="button-group">
+        <button class="button" onclick="window.location.href='secondscenecombined.html'">Previous</button>
+        <button class="button" onclick="window.location.href='index.html'">Next</button>
+    </div>
+    <svg width="960" height="500"></svg>
+    <div class="tooltip"></div>
+
+    <script>
+        // Data for affected
+        const affectedData = [
+            {category: 'normal', male: 7770, female: 13400},
+            {category: 'above normal', male: 493, female: 962},
+            {category: 'well above normal', male: 696, female: 1711},
+            {category: 'normal & above normal', male: 1440, female: 2630},
+            {category: 'normal & well above normal', male: 1066, female: 2285},
+            {category: 'above normal & normal', male: 472, female: 735},
+            {category: 'above normal & well above normal', male: 131, female: 291},
+            {category: 'well above normal & normal', male: 228, female: 456},
+            {category: 'well above normal & above normal', male: 76, female: 155}
+        ];
+
+        // Data for unaffected
+        const unaffectedData = [
+            {category: 'normal', male: 9667, female: 17839},
+            {category: 'above normal', male: 281, female: 707},
+            {category: 'well above normal', male: 323, female: 746},
+            {category: 'normal & above normal', male: 803, female: 1860},
+            {category: 'normal & well above normal', male: 268, female: 463},
+            {category: 'above normal & normal', male: 372, female: 660},
+            {category: 'above normal & well above normal', male: 31, female: 67},
+            {category: 'well above normal & normal', male: 312, female: 486},
+            {category: 'well above normal & above normal', male: 59, female: 95}
+        ];
+
+        const margin = {top: 20, right: 30, bottom: 120, left: 90},
+              width = 960 - margin.left - margin.right,
+              height = 500 - margin.top - margin.bottom;
+
+        const svg = d3.select("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+        const x = d3.scaleBand()
+            .domain(affectedData.map(d => d.category))
+            .range([0, width])
+            .padding(0.1);
+
+        const y = d3.scaleLinear()
+            .range([height, 0]);
+
+        svg.append("g")
+            .attr("class", "x-axis")
+            .attr("transform", "translate(0," + height + ")")
+            .call(d3.axisBottom(x))
+            .selectAll("text")
+            .attr("transform", "rotate(-45)")
+            .style("text-anchor", "end");
+
+        svg.append("g")
+            .attr("class", "y-axis");
+
+        svg.append("text")
+            .attr("transform", "rotate(-90)")
+            .attr("y", 0 - margin.left)
+            .attr("x", 0 - (height / 2))
+            .attr("dy", "1em")
+            .style("text-anchor", "middle")
+            .text("Population");
+
+        svg.append("text")
+            .attr("transform", "translate(" + (width / 2) + " ," + (height + margin.top + 90) + ")")
+            .style("text-anchor", "middle")
+            .text("Glucose & Cholesterol");
+
+        const tooltip = d3.select(".tooltip");
+
+        function updateChart(gender, status) {
+            const data = status === 'affected' ? affectedData : unaffectedData;
+
+            y.domain([0, d3.max(data, d => d[gender])]);
+
+            svg.select(".y-axis")
+                .call(d3.axisLeft(y));
+
+            const bars = svg.selectAll(".bar")
+                .data(data, d => d.category);
+
+            bars.enter()
+                .append("rect")
+                .attr("class", d => `bar ${status} ${gender}`)
+                .attr("x", d => x(d.category))
+                .attr("width", x.bandwidth())
+                .attr("y", d => y(0))
+                .attr("height", d => height - y(0))
+                .merge(bars)
+                .transition()
+                .duration(750)
+                .attr("x", d => x(d.category))
+                .attr("width", x.bandwidth())
+                .attr("y", d => y(d[gender]))
+                .attr("height", d => height - y(d[gender]))
+                .attr("class", d => `bar ${status} ${gender}`);
+
+            bars.exit().remove();
+
+            bars.on("mouseover", function(event, d) {
+                tooltip.transition()
+                    .duration(200)
+                    .style("opacity", .9);
+                tooltip.html(d.category + "<br/>" + d[gender])
+                    .style("left", (event.pageX + 5) + "px")
+                    .style("top", (event.pageY - 28) + "px");
+            })
+            .on("mouseout", function(d) {
+                tooltip.transition()
+                    .duration(500)
+                    .style("opacity", 0);
+            });
+        }
+
+        // Initial chart
+        updateChart('male', 'affected');
+
+        // Event listeners for buttons
+        d3.select("#affectedMaleButton").on("click", () => updateChart('male', 'affected'));
+        d3.select("#unaffectedMaleButton").on("click", () => updateChart('male', 'unaffected'));
+        d3.select("#affectedFemaleButton").on("click", () => updateChart('female', 'affected'));
+        d3.select("#unaffectedFemaleButton").on("click", () => updateChart('female', 'unaffected'));
+    </script>
+</body>
+</html>

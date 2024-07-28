@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BMI Classification Bar Chart</title>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <style>
+        .bar.affectedMale {
+            fill: steelblue;
+        }
+        .bar.unaffectedMale {
+            fill: lightblue;
+        }
+        .bar.affectedFemale {
+            fill: red;
+        }
+        .bar.unaffectedFemale {
+            fill: pink;
+        }
+        .axis-label {
+            font-size: 12px;
+        }
+        .tooltip {
+            position: absolute;
+            text-align: center;
+            width: auto;
+            max-width: 150px;
+            padding: 5px;
+            font: 12px sans-serif;
+            background: lightsteelblue;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .annotation {
+            font-size: 10px; /* Reduced font size for annotations */
+            fill: black;
+        }
+    </style>
+</head>
+<body>
+    <h1>Cardiovascular Disease vs Obesity Level</h1>
+    <p>The data shows that heart disease incidence is highest among overweight individuals, with females having higher incidences in the 
+    optimum and obesity categories compared to males. While being overweight or obese significantly increases the risk of heart disease, 
+    maintaining an optimum BMI is associated with lower incidences. However, even those with an optimum BMI are still at risk. The lowest 
+    heart disease cases are found in the underweight category for both genders. On the other hand, the highest number of people unaffected 
+    by heart disease is in the optimum BMI category, followed by the overweight category. Females generally have higher numbers of unaffected 
+    individuals in all BMI categories compared to males. As obesity severity increases, the number of unaffected individuals decreases, indicating 
+    a higher risk of heart disease in higher obesity classes. The lowest number of unaffected individuals is found in the underweight category 
+    for both genders.</p>
+    <div id="buttons">
+      <button id="affectedMaleButton">Affected Male</button>
+      <button id="unaffectedMaleButton">Unaffected Male</button>
+      <button id="affectedFemaleButton">Affected Female</button>
+      <button id="unaffectedFemaleButton">Unaffected Female</button>
+    </div>
+    <div class="button-group">
+        <button class="button" onclick="window.location.href='firstannotations3UA.html'">Previous</button>
+        <button class="button" onclick="window.location.href='thirdscenecombined.html'">Next</button>
+    </div>
+    <svg width="710" height="530"></svg>
+
+    <script>
+        const data = {
+            affectedMale: [
+                {category: 'Underweight', value: 65},
+                {category: 'Optimum', value: 3772},
+                {category: 'Overweight', value: 5152},
+                {category: 'Class I Obesity', value: 2327},
+                {category: 'Class II Obesity', value: 667},
+                {category: 'Class III Obesity', value: 181}
+            ],
+            unaffectedMale: [
+                {category: 'Underweight', value: 149},
+                {category: 'Optimum', value: 5518},
+                {category: 'Overweight', value: 4549},
+                {category: 'Class I Obesity', value: 1324},
+                {category: 'Class II Obesity', value: 252},
+                {category: 'Class III Obesity', value: 83}
+            ],
+            affectedFemale: [
+                {category: 'Underweight', value: 119},
+                {category: 'Optimum', value: 6098},
+                {category: 'Overweight', value: 7600},
+                {category: 'Class I Obesity', value: 4693},
+                {category: 'Class II Obesity', value: 2288},
+                {category: 'Class III Obesity', value: 1120}
+            ],
+            unaffectedFemale: [
+                {category: 'Underweight', value: 321},
+                {category: 'Optimum', value: 9364},
+                {category: 'Overweight', value: 7703},
+                {category: 'Class I Obesity', value: 3466},
+                {category: 'Class II Obesity', value: 1147},
+                {category: 'Class III Obesity', value: 506}
+            ]
+        };
+
+        const svg = d3.select("svg"),
+            margin = {top: 50, right: 50, bottom: 120, left: 70},
+            width = +svg.attr("width") - margin.left - margin.right,
+            height = +svg.attr("height") - margin.top - margin.bottom,
+            g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+
+        const x = d3.scaleBand()
+            .rangeRound([0, width])
+            .padding(0.1);
+
+        const y = d3.scaleLinear()
+            .rangeRound([height, 0]);
+
+        const tooltip = d3.select("body").append("div")
+            .attr("class", "tooltip")
+            .style("opacity", 0);
+
+        function updateData(category) {
+            const currentData = data[category];
+            x.domain(currentData.map(d => d.category));
+            y.domain([0, d3.max(currentData, d => d.value)]);
+
+            const maxValue = d3.max(currentData, d => d.value);
+            const minValue = d3.min(currentData, d => d.value);
+
+            g.selectAll(".bar").remove();
+            g.selectAll(".axis").remove();
+            g.selectAll(".label").remove();
+            g.selectAll(".annotation").remove();
+
+            g.append("g")
+                .attr("class", "axis axis--x")
+                .attr("transform", `translate(0,${height})`)
+                .call(d3.axisBottom(x));
+
+            g.append("g")
+                .attr("class", "axis axis--y")
+                .call(d3.axisLeft(y).ticks(10, "s"))
+                .append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("y", 6)
+                .attr("dy", "0.71em")
+                .attr("text-anchor", "end")
+                .text("Population");
+
+            g.append("text")
+                .attr("class", "label")
+                .attr("transform", `translate(${width / 2},${height + margin.bottom - 10})`)
+                .attr("text-anchor", "middle")
+                .text("BMI Classification");
+
+            g.append("text")
+                .attr("class", "label")
+                .attr("transform", "rotate(-90)")
+                .attr("y", 0 - margin.left)
+                .attr("x", 0 - (height / 2))
+                .attr("dy", "1em")
+                .attr("text-anchor", "middle")
+                .text("Population");
+
+            g.selectAll(".bar")
+                .data(currentData)
+                .enter().append("rect")
+                .attr("class", d => `bar ${category}`)
+                .attr("x", d => x(d.category))
+                .attr("y", d => y(d.value))
+                .attr("width", x.bandwidth())
+                .attr("height", d => height - y(d.value))
+                .on("mouseover", function(event, d) {
+                    tooltip.transition()
+                        .duration(200)
+                        .style("opacity", .9);
+                    tooltip.html(`Category: ${d.category}<br/>Value: ${d.value}`)
+                        .style("left", (event.pageX) + "px")
+                        .style("top", (event.pageY - 28) + "px");
+                })
+                .on("mouseout", function() {
+                    tooltip.transition()
+                        .duration(500)
+                        .style("opacity", 0);
+                });
+
+            g.selectAll(".annotation")
+                .data(currentData)
+                .enter()
+                .append("text")
+                .attr("class", "annotation")
+                .attr("x", d => x(d.category) + x.bandwidth() / 2)
+                .attr("y", d => y(d.value) - 20) // Adjusted position
+                .attr("text-anchor", "middle")
+                .text(d => {
+                    if (d.value === maxValue) {
+                        return "Max: " + d.value;
+                    } else if (d.value === minValue) {
+                        return "Min: " + d.value;
+                    }
+                    return "";
+                });
+
+            g.selectAll(".annotation-line")
+                .data(currentData)
+                .enter()
+                .append("line")
+                .attr("class", "annotation-line")
+                .attr("x1", d => x(d.category) + x.bandwidth() / 2)
+                .attr("y1", d => y(d.value) - 10) // Adjusted position
+                .attr("x2", d => x(d.category) + x.bandwidth() / 2)
+                .attr("y2", d => {
+                    if (d.value === maxValue || d.value === minValue) {
+                        return y(d.value) - 30; // Adjusted position
+                    }
+                    return y(d.value);
+                })
+                .style("stroke", "none")
+                .style("stroke-width", 0);
+        }
+
+        document.getElementById('affectedMaleButton').addEventListener('click', () => updateData('affectedMale'));
+        document.getElementById('unaffectedMaleButton').addEventListener('click', () => updateData('unaffectedMale'));
+        document.getElementById('affectedFemaleButton').addEventListener('click', () => updateData('affectedFemale'));
+        document.getElementById('unaffectedFemaleButton').addEventListener('click', () => updateData('unaffectedFemale'));
+
+        // Initialize with default data
+        updateData('affectedMale');
+    </script>
+</body>
+</html>
